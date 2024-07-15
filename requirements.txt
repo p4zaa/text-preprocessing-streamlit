@@ -1,0 +1,5 @@
+'streamlit'
+'DataPrepKit @ git+https://github.com/p4zaa/DataPrepKit.git@main'
+'polars'
+'openpyxl'
+'xlsxwriter'
