@@ -1,12 +1,15 @@
 import streamlit as st
 import utils as utils
 import pandas as pd
+import polars as pl
 from io import BytesIO
 import xlsxwriter
 import openpyxl
+import ThaiTextPrepKit
 
-st.header("Text Preprocessing 👏")
+st.header("Text Preprocessing 🥳")
 st.write("Thai language preprocessing for any downstream tasks")
+st.write(f'Text Preprocessing Version: {ThaiTextPrepKit.__version__}')
 
 uploaded_file = st.file_uploader('Upload file here', type=['csv', 'xlsx'],
                  accept_multiple_files=False)
@@ -17,7 +20,7 @@ dataframe = None
 if uploaded_file is not None:
     file_type = uploaded_file.type
     if file_type == 'text/csv':
-        dataframe = pd.read_csv(uploaded_file)
+        dataframe = pl.read_csv(uploaded_file)
 
     elif file_type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
         workbook = openpyxl.load_workbook(uploaded_file)
@@ -30,11 +33,14 @@ if uploaded_file is not None:
         )
 
         if selected_sheet:
-            dataframe = pd.read_excel(uploaded_file)
+            dataframe = pl.read_excel(uploaded_file,
+                                      sheet_name=selected_sheet,
+                                      engine='calamine')
 
     st.write('Sample data')
-    st.data_editor(dataframe.head(5),
-                   disabled=True)
+    st.dataframe(dataframe.head(5))
+    #st.data_editor(dataframe.head(5),
+    #               disabled=True)
     
     COLUMNS = dataframe.columns
 
@@ -61,11 +67,12 @@ remain_format = st.checkbox('Remiain Text Format',
 return_token_list = st.checkbox('Return Token List',
                                value=False)
 
-include_pattern = st.text_area('Include Pattern')
+include_pattern = st.text_input('Include Pattern',
+                                placeholder='Input pattern to remain here... e.g. /()')
 
 spec_patterns = st.selectbox(
    "Select Specific Pattern",
-   ('default', 'corporation'),
+   ('default', 'corporate'),
    index=0,
    placeholder="Select specific patterns...",
 )
@@ -77,7 +84,7 @@ perform_button = st.button("Perform Preprossing",
 if perform_button:
     if dataframe is not None:
         #try:
-            dataframe = utils.preprocess(df=dataframe,
+            dataframe = utils.preprocess(_df=dataframe,
                             input_col=text_column,
                             output_col=output_column,
                             custom_dict=None,
@@ -85,10 +92,11 @@ if perform_button:
                             keep_format=remain_format,
                             return_token_list=return_token_list,
                             include_pattern=include_pattern,
-                            pattern=spec_patterns)
+                            lower_case=lowercase,
+                            patterns=spec_patterns)
             
-            st.data_editor(dataframe[output_column].head(5),
-                           disabled=True)
+            #st.data_editor(dataframe[output_column].head(5),
+            #               disabled=True)
 
         #except Exception as error:
         #    st.write(f'⚠️ Exception Occur: {error}')
@@ -99,6 +107,7 @@ if perform_button:
 if dataframe is not None:
     if output_column in dataframe.columns:
         st.dataframe(dataframe[[text_column, output_column]].head(5))
+
     download_csv = st.download_button('Donwload .CSV',
                                         data=utils.convert_to_csv(dataframe),
                                         file_name="preprocess_text.csv",
