@@ -61,7 +61,7 @@ remain_stopwords = st.checkbox('Remain Stopwords',
 lowercase = st.checkbox('Lowercase Text',
                                value=True)
 
-remain_format = st.checkbox('Remiain Text Format',
+remain_format = st.checkbox('Remain Text Format',
                                value=True)
 
 return_token_list = st.checkbox('Return Token List',
@@ -106,7 +106,7 @@ if perform_button:
 
 if dataframe is not None:
     if output_column in dataframe.columns:
-        st.dataframe(dataframe[[text_column, output_column]].head(5))
+        st.dataframe(dataframe.select([text_column, output_column]).head(5))
 
     download_csv = st.download_button('Donwload .CSV',
                                         data=utils.convert_to_csv(dataframe),
@@ -119,3 +119,10 @@ if dataframe is not None:
                                         file_name="preprocess_text.xlsx",
                                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                                         type='secondary')
+    
+    download_html_table = st.download_button('Get HTML Table',
+                                             data=utils.to_html_highlight_table(dataframe,
+                                                                                patterns=spec_patterns,
+                                                                                raw_column=text_column,
+                                                                                preprocess_column=output_column),
+                                            file_name='HTML_compare_table.html')
