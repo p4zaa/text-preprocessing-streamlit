@@ -5,14 +5,30 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 import re
+import mmh3
 
 available_patterns = {
     'default': TYPO.patterns,
     'corporate': TYPO.corp_patterns,
 }
 
-@st.cache_data
-def preprocess(_df, 
+def hash_dataframe(df: pl.DataFrame, seed=42) -> str:
+    """Hash a polars DataFrame. Due to the behaviour of pl.DataFrame.hash_rows 
+    this will only be consistent given a polars version.
+    Args:
+        df (pl.DataFrame): polars DataFrame to be hashed.
+        seed (int, optional): Seed for the hash function.
+    Returns:
+        str: Hash of the polars DataFrame.
+    """
+    row_hashes = df.hash_rows(seed=seed)
+    hasher = mmh3.mmh3_x64_128(seed=seed)
+    for row_hash in row_hashes:
+        hasher.update(row_hash.to_bytes(64, "little"))
+    return hasher.digest().hex()
+
+@st.cache_data(hash_funcs={pl.DataFrame: hash_dataframe})
+def preprocess(df, 
                input_col,
                output_col,
                custom_dict=None,
@@ -22,7 +38,7 @@ def preprocess(_df,
                patterns=None,
                **kwargs):
     patterns = available_patterns.get(patterns)
-    _df = _df.pipe(thai_text_preprocessing,
+    df = df.pipe(thai_text_preprocessing,
                                  input_col,
                                  output_col,
                                  custom_dict=custom_dict,
@@ -32,17 +48,19 @@ def preprocess(_df,
                                  patterns=patterns,
                                  **kwargs)
     
-    return _df #df.to_pandas()
+    return df #df.to_pandas()
 
-def convert_to_csv(_df: pl.DataFrame):
+@st.cache_data(hash_funcs={pl.DataFrame: hash_dataframe})
+def convert_to_csv(df: pl.DataFrame):
     # IMPORTANT: Cache the conversion to prevent computation on every rerun
-    return _df.write_csv() #df.to_csv().encode("utf-8")
+    return df.write_csv() #df.to_csv().encode("utf-8")
 
-def convert_to_xlsx(_df: pl.DataFrame):
+@st.cache_data(hash_funcs={pl.DataFrame: hash_dataframe})
+def convert_to_xlsx(df: pl.DataFrame):
     buffer = BytesIO()
     with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
         # Write each dataframe to a different worksheet.
-        _df.to_pandas().to_excel(writer, sheet_name='Sheet1', index=False)
+        df.to_pandas().to_excel(writer, sheet_name='Sheet1', index=False)
     return buffer
 
 ##################################
@@ -110,11 +128,12 @@ def get_highlight_texts(patterns, texts: list) -> None:
         html_text.append(highlight_patterns(patterns, text))
     return html_text
 
+@st.cache_data(hash_funcs={pl.DataFrame: hash_dataframe})
 def to_html_highlight_table(df, patterns, raw_column, preprocess_column):
     patterns = available_patterns.get(patterns)
     # Generate HTML table
     html_table = generate_html_table(
-        (get_highlight_texts(patterns, df.get_column(raw_column).to_list()), 'raw text'),
+        (get_highlight_texts(patterns, df.get_column(raw_column).to_list()), 'Raw Text'),
         (get_highlight_texts(patterns, df.get_column(preprocess_column).to_list()), "PAREPA"),
         )
     

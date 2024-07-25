@@ -4,3 +4,4 @@ polars
 openpyxl
 xlsxwriter
 fastexcel
+mmh3
