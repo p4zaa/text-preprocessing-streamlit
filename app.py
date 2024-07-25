@@ -6,9 +6,10 @@ from io import BytesIO
 import xlsxwriter
 import openpyxl
 import ThaiTextPrepKit
+import plotly.express as px
 
 # Insert containers separated into tabs:
-tab1, tab2 = st.tabs(["Text Preprocessing", "Tab2"])
+tab1, tab2 = st.tabs(["Text Preprocessing", "Quick Visualization"])
 
 def on_file_uploader_change():
     print('Change!')
@@ -167,3 +168,47 @@ with tab1:
                                                                                         raw_column=text_column,
                                                                                         preprocess_column=output_column),
                                                     file_name='HTML_compare_table.html')
+            
+with tab2:
+    tab_barchart, tab_piechart = st.tabs(["Bar Chart", "Pie Chart"])
+
+    with tab_barchart:
+        st.header("Bar Chart")
+        if 'performed_dataframe' in st.session_state and st.session_state['performed_dataframe'] is not None:
+            with st.form(key='my_form'):
+                df = st.session_state.get('performed_dataframe', dataframe)
+
+                columns = df.columns
+                x_col = st.selectbox('Select X axis column', columns, key='bar_x_col')
+                y_col = st.selectbox('Select Y axis column', columns, key='bar_y_col')
+                bar_title = st.text_input('Bar Chart Title', 'Bar Chart', key='bar_chart_title')
+
+                st.form_submit_button('Plot')
+
+            if x_col and y_col:
+                bar_fig = px.bar(df.to_pandas(), x=x_col, y=y_col, title=bar_title)
+                st.plotly_chart(bar_fig)
+            else:
+                st.write("Select columns for X and Y axes.")
+        else:
+            st.write("No data available. Please preprocess the data first.")
+
+    with tab_piechart:
+        st.header("Pie Chart")
+        if 'performed_dataframe' in st.session_state and st.session_state['performed_dataframe'] is not None:
+            with st.form(key='my_form'):
+                df = st.session_state.get('performed_dataframe', dataframe)
+
+                columns = df.columns
+                names_col = st.selectbox('Select Names column', columns, key='pie_names_col')
+                pie_title = st.text_input('Pie Chart Title', 'Pie Chart', key='pie_chart_title')
+
+                st.form_submit_button('Plot')
+
+            if names_col:
+                pie_fig = px.pie(df.to_pandas(), names=names_col, title=pie_title)
+                st.plotly_chart(pie_fig)
+            else:
+                st.write("Select a column for Names.")
+        else:
+            st.write("No data available. Please preprocess the data first.")
