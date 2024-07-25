@@ -7,19 +7,20 @@ import xlsxwriter
 import openpyxl
 import ThaiTextPrepKit
 
-# Insert containers separated into tabs:
-tab1, tab2 = st.tabs(["Text Preprocessing", "Tab2"])
 
 def on_file_uploader_change():
     print('Change!')
     st.session_state.performed_dataframe = None
     st.session_state.perform = False
 
-with tab1:
-    st.header("Text Preprocessing 🥳")
-    st.write("Thai language preprocessing for any downstream tasks")
-    st.write(f'Text Preprocessing Version: {ThaiTextPrepKit.__version__}')
+st.header("Text Preprocessing 🥳")
+st.write("Thai language preprocessing for any downstream tasks")
+st.write(f'Text Preprocessing Version: {ThaiTextPrepKit.__version__}')
 
+# Insert containers separated into tabs:
+tab1, tab2 = st.tabs(["Text Preprocessing", "Data View"])
+
+with tab1:
     uploaded_file = st.file_uploader('Upload file here', type=['csv', 'xlsx'],
                     accept_multiple_files=False,
                     on_change=on_file_uploader_change)
@@ -167,3 +168,8 @@ with tab1:
                                                                                         raw_column=text_column,
                                                                                         preprocess_column=output_column),
                                                     file_name='HTML_compare_table.html')
+            
+with tab2:
+    df = st.session_state.get('performed_dataframe')
+    if df is not None:
+        st.dataframe(df)
