@@ -13,7 +13,7 @@ def on_file_uploader_change():
     st.session_state.performed_dataframe = None
     st.session_state.perform = False
 
-st.header("Text Preprocessing 🥳")
+st.header("Text Preprocessing 🥳 GEEEGEEEEE")
 st.write("Thai language preprocessing for any downstream tasks")
 st.write(f'Text Preprocessing Version: {ThaiTextPrepKit.__version__}')
 
