@@ -6,6 +6,7 @@ import pandas as pd
 from io import BytesIO
 import re
 import mmh3
+import openpyxl
 
 available_patterns = {
     'default': TYPO.patterns,
@@ -27,6 +28,22 @@ def hash_dataframe(df: pl.DataFrame, seed=42) -> str:
     for row_hash in row_hashes:
         hasher.update(row_hash.to_bytes(64, "little"))
     return hasher.digest().hex()
+
+@st.cache_data(hash_funcs={pl.DataFrame: hash_dataframe})
+def load_uploaded_file(uploaded_file, file_type, selected_sheet=None):
+    if file_type == 'text/csv':
+        dataframe = pl.read_csv(uploaded_file)
+        return dataframe
+
+    elif file_type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+        workbook = openpyxl.load_workbook(uploaded_file)
+        return workbook
+    
+    elif file_type == 'excel':
+        dataframe = pl.read_excel(uploaded_file,
+                        sheet_name=selected_sheet,
+                        engine='calamine')
+        return dataframe
 
 @st.cache_data(hash_funcs={pl.DataFrame: hash_dataframe})
 def preprocess(df, 

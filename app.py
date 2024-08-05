@@ -4,10 +4,10 @@ import pandas as pd
 import polars as pl
 from io import BytesIO
 import xlsxwriter
-import openpyxl
+#import openpyxl
 import ThaiTextPrepKit
 
-__version__ = '1.0a'
+__version__ = '1.0b'
 
 def on_file_uploader_change():
     print('Change!')
@@ -45,10 +45,12 @@ with tab1:
         try:
             file_type = uploaded_file.type
             if file_type == 'text/csv':
-                dataframe = pl.read_csv(uploaded_file)
+                dataframe = utils.load_uploaded_file(uploaded_file=uploaded_file,
+                                                     file_type=file_type) #pl.read_csv(uploaded_file)
 
             elif file_type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
-                workbook = openpyxl.load_workbook(uploaded_file)
+                workbook = utils.load_uploaded_file(uploaded_file=uploaded_file,
+                                                    file_type=file_type) #openpyxl.load_workbook(uploaded_file)
                 
                 selected_sheet = st.selectbox(
                     "Select sheet",
@@ -58,9 +60,12 @@ with tab1:
                 )
 
                 if selected_sheet:
-                    dataframe = pl.read_excel(uploaded_file,
-                                            sheet_name=selected_sheet,
-                                            engine='calamine')
+                    dataframe = utils.load_uploaded_file(uploaded_file=uploaded_file,
+                                                        file_type='excel',
+                                                        selected_sheet=selected_sheet) 
+                                #pl.read_excel(uploaded_file,
+                                #            sheet_name=selected_sheet,
+                                #            engine='calamine')
 
             st.write('Sample data')
             st.dataframe(dataframe.head(5))
@@ -164,12 +169,16 @@ with tab1:
                                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                                                 type='secondary')
             
-            download_html_table = st.download_button('Get HTML Table',
-                                                    data=utils.to_html_highlight_table(performed_dataframe,
-                                                                                        patterns=spec_patterns,
-                                                                                        raw_column=text_column,
-                                                                                        preprocess_column=output_column),
-                                                    file_name='HTML_compare_table.html')
+            get_html_table = st.checkbox('Get HTML compare table',
+                                        value=False)
+
+            if get_html_table:
+                download_html_table = st.download_button('Get HTML Table',
+                                                        data=utils.to_html_highlight_table(performed_dataframe,
+                                                                                            patterns=spec_patterns,
+                                                                                            raw_column=text_column,
+                                                                                            preprocess_column=output_column),
+                                                        file_name='HTML_compare_table.html')
             
 with tab2:
     df = st.session_state.get('performed_dataframe')
