@@ -24,7 +24,8 @@ tab1, tab2 = st.tabs(["Text Preprocessing", "Data View"])
 with tab1:
     uploaded_file = st.file_uploader('Upload file here', type=['csv', 'xlsx'],
                     accept_multiple_files=False,
-                    on_change=on_file_uploader_change)
+                    on_change=on_file_uploader_change,
+                    help='อัปโหลดไฟล์ในรูปแบบ .csv หรือ .xlsx (ได้ครั้งละ 1 ไฟล์)')
 
     COLUMNS = []
     dataframe = None
@@ -56,6 +57,7 @@ with tab1:
                     "Select sheet",
                     workbook.sheetnames,
                     index=0,
+                    help='เลือกชีทที่ต้องการ',
                     #placeholder="Select sheet...",
                 )
 
@@ -89,27 +91,34 @@ with tab1:
     COLUMNS,
     index=0,
     placeholder="Select text column...",
+    help='เลือกคอลัมน์ข้อความที่ต้องการปรับปรุง'
     )
 
     st.write("You selected:", text_column)
 
-    output_column = st.text_input("Output column title", "pre_text")
+    output_column = st.text_input("Output column title", "pre_text",
+                                  help='กำหนดชื่อคอลัมน์ใหม่สำหรับข้อความที่ทำการปรับปรุงแล้ว')
 
     remain_stopwords = st.checkbox('Remain Stopwords',
-                                value=True)
+                                value=True,
+                                help='เก็บคำเชื่อมไว้ เช่น และ, หรือ, ใช่, ไม่')
 
     lowercase = st.checkbox('Lowercase Text',
-                                value=False)
+                                value=False,
+                                help='แปลงตัวอักษรเป็นตัวพิมพ์เล็กทั้งหมด')
 
     remain_format = st.checkbox('Remain Text Format',
-                                value=True)
+                                value=True,
+                                help='คงรูปแบบการเว้นวรรคเดิมของประโยคต้นฉบับไว้ หากไม่เลือกประโยคจะเว้นวรรคแยกเป็นคำๆ เช่น "สบายดีไหม" -> "สบาย ดี ไหม"')
 
     return_token_list = st.checkbox('Return Token List',
-                                value=False)
+                                value=False,
+                                help='คือค่าประโยคในรูปแบบลิสต์ของคำ (สำหรับการนำไปใช้ต่อในการ visualization เท่านั้น) เช่น "สบายดีไหม" -> ["สบาย","ดี","ไหม"]')
 
     include_pattern = st.text_input('Include Pattern',
                                     placeholder='Input pattern to remain here... e.g. /()',
-                                    value='/()',)
+                                    value='/()',
+                                    help='เพิ่มอักขระพิเศษที่ไม่ต้องการให้ตัดทิ้ง')
 
     spec_patterns = st.selectbox(
     "Select Specific Pattern",
@@ -179,6 +188,8 @@ with tab1:
                                                                                             raw_column=text_column,
                                                                                             preprocess_column=output_column),
                                                         file_name='HTML_compare_table.html')
+                
+            st.balloons()
             
 with tab2:
     df = st.session_state.get('performed_dataframe')
