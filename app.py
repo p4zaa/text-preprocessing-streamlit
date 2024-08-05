@@ -103,7 +103,8 @@ with tab1:
                                 value=False)
 
     include_pattern = st.text_input('Include Pattern',
-                                    placeholder='Input pattern to remain here... e.g. /()')
+                                    placeholder='Input pattern to remain here... e.g. /()',
+                                    value='/()',)
 
     spec_patterns = st.selectbox(
     "Select Specific Pattern",
