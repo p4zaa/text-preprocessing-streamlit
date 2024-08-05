@@ -7,7 +7,7 @@ import xlsxwriter
 #import openpyxl
 import ThaiTextPrepKit
 
-__version__ = '1.0d'
+__version__ = '1.0e'
 
 def on_file_uploader_change():
     print('Change!')
@@ -143,8 +143,11 @@ with tab1:
     if perform_button:
         if dataframe is not None:
             #try:
-            for text_column in text_columns:
-                performed_dataframe = utils.preprocess(df=performed_dataframe if performed_dataframe else dataframe,
+            progress_text = "Operation in progress. Please wait."
+            my_bar = st.progress(0, text=progress_text)
+            for i, text_column in enumerate(text_columns):
+                my_bar.progress(i + 1, text=progress_text)
+                performed_dataframe = utils.preprocess(df=st.session_state.performed_dataframe if st.session_state.performed_dataframe is not None else dataframe,
                                 input_col=text_column,
                                 output_col=text_column + output_column,
                                 custom_dict=None,
@@ -162,6 +165,7 @@ with tab1:
 
             #except Exception as error:
             #    st.write(f'⚠️ Exception Occur: {error}')
+            my_bar.empty()
 
         else:
             st.write('⚠️ Upload file first!')
@@ -170,8 +174,8 @@ with tab1:
     performed_dataframe = st.session_state.performed_dataframe
 
     if performed_dataframe is not None:
-        if output_column in performed_dataframe.columns:
-            st.dataframe(performed_dataframe.select([text_column, output_column]).head(5))
+        if st.session_state.performed_dataframe is not None: #output_column in performed_dataframe.columns:
+            #st.dataframe(performed_dataframe.select([col for col in ]).head(5))
 
             download_csv = st.download_button('Donwload .CSV',
                                                 data=utils.convert_to_csv(performed_dataframe),
