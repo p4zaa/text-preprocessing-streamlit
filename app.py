@@ -7,13 +7,14 @@ import xlsxwriter
 import openpyxl
 import ThaiTextPrepKit
 
+__version__ = '1.0a'
 
 def on_file_uploader_change():
     print('Change!')
     st.session_state.performed_dataframe = None
     st.session_state.perform = False
 
-st.header("Text Preprocessing 🥳 GEEEGEEEEE")
+st.header(f"Text Preprocessing {__version__} 🥳")
 st.write("Thai language preprocessing for any downstream tasks")
 st.write(f'Text Preprocessing Version: {ThaiTextPrepKit.__version__}')
 
@@ -106,7 +107,7 @@ with tab1:
 
     spec_patterns = st.selectbox(
     "Select Specific Pattern",
-    ('default', 'corporate'),
+    ('default', 'natural', 'corporate'),
     index=0,
     placeholder="Select specific patterns...",
     )

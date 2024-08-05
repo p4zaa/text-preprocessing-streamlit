@@ -9,6 +9,7 @@ import mmh3
 
 available_patterns = {
     'default': TYPO.patterns,
+    'natural': TYPO.natural_patterns,
     'corporate': TYPO.corp_patterns,
 }
 
@@ -131,6 +132,9 @@ def get_highlight_texts(patterns, texts: list) -> None:
 @st.cache_data(hash_funcs={pl.DataFrame: hash_dataframe})
 def to_html_highlight_table(df, patterns, raw_column, preprocess_column):
     patterns = available_patterns.get(patterns)
+
+    df = df.drop_nulls([raw_column, preprocess_column])
+
     # Generate HTML table
     html_table = generate_html_table(
         (get_highlight_texts(patterns, df.get_column(raw_column).to_list()), 'Raw Text'),
