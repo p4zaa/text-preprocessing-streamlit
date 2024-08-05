@@ -189,7 +189,8 @@ with tab1:
                                                                                             preprocess_column=output_column),
                                                         file_name='HTML_compare_table.html')
                 
-            st.balloons()
+            #st.balloons()
+            dataframe = performed_dataframe
             
 with tab2:
     df = st.session_state.get('performed_dataframe')
