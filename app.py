@@ -7,7 +7,7 @@ import xlsxwriter
 #import openpyxl
 import ThaiTextPrepKit
 
-__version__ = '1.0c'
+__version__ = '1.0d'
 
 def on_file_uploader_change():
     print('Change!')
@@ -86,17 +86,23 @@ with tab1:
         st.session_state.perform = False
         st.session_state.performed_dataframe = None
 
-    text_column = st.selectbox(
-    "Select text column",
-    COLUMNS,
-    index=0,
-    placeholder="Select text column...",
-    help='เลือกคอลัมน์ข้อความที่ต้องการปรับปรุง'
+    text_columns = st.multiselect(
+        "Select text columns",
+        COLUMNS,
+        help='เลือกคอลัมน์ข้อความที่ต้องการปรับปรุง',
     )
 
-    st.write("You selected:", text_column)
+    st.write("You selected:", text_columns)
 
-    output_column = st.text_input("Output column title", "pre_text",
+    #st.selectbox(
+    #    "Select text column",
+    #    COLUMNS,
+    #    index=0,
+    #    placeholder="Select text column...",
+    #    help='เลือกคอลัมน์ข้อความที่ต้องการปรับปรุง'
+    #)
+
+    output_column = st.text_input("Output column title", "_pre_text",
                                   help='กำหนดชื่อคอลัมน์ใหม่สำหรับข้อความที่ทำการปรับปรุงแล้ว')
 
     remain_stopwords = st.checkbox('Remain Stopwords',
@@ -121,10 +127,10 @@ with tab1:
                                     help='เพิ่มอักขระพิเศษที่ไม่ต้องการให้ตัดทิ้ง')
 
     spec_patterns = st.selectbox(
-    "Select Specific Pattern",
-    ('default', 'natural', 'corporate'),
-    index=0,
-    placeholder="Select specific patterns...",
+        "Select Specific Pattern",
+        ('default', 'natural', 'corporate'),
+        index=0,
+        placeholder="Select specific patterns...",
     )
 
     perform_ready = not st.session_state.perform
@@ -137,9 +143,10 @@ with tab1:
     if perform_button:
         if dataframe is not None:
             #try:
-                performed_dataframe = utils.preprocess(df=dataframe,
+            for text_column in text_columns:
+                performed_dataframe = utils.preprocess(df=performed_dataframe if performed_dataframe else dataframe,
                                 input_col=text_column,
-                                output_col=output_column,
+                                output_col=text_column + output_column,
                                 custom_dict=None,
                                 keep_stopwords=remain_stopwords,
                                 keep_format=remain_format,
@@ -190,7 +197,7 @@ with tab1:
                                                         file_name='HTML_compare_table.html')
                 
             #st.balloons()
-            dataframe = performed_dataframe
+            #dataframe = performed_dataframe
             
 with tab2:
     df = st.session_state.get('performed_dataframe')
