@@ -7,7 +7,7 @@ import xlsxwriter
 #import openpyxl
 import ThaiTextPrepKit
 
-__version__ = '1.0b'
+__version__ = '1.0c'
 
 def on_file_uploader_change():
     print('Change!')
