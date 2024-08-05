@@ -1,5 +1,5 @@
 from ThaiTextPrepKit import typo_patterns as TYPO
-from ThaiTextPrepKit.polars_pretextkit import thai_text_preprocessing
+from ThaiTextPrepKit.polars_pretextkit import thai_text_preprocessing, preprocess_text_batches
 import polars as pl
 import streamlit as st
 import pandas as pd
@@ -67,6 +67,27 @@ def preprocess(df,
                                  **kwargs)
     
     return df #df.to_pandas()
+
+@st.cache_data(hash_funcs={pl.DataFrame: hash_dataframe})
+def sigle_text_preprocessing(text,
+                            keep_stopwords: bool=True,
+                            keep_format: bool=True,
+                            return_token_list: bool=False,
+                            lower_case: bool=False,
+                            include_pattern: str=None,
+                            patterns=None,):
+    
+    patterns = available_patterns.get(patterns)
+ 
+    pre_series = preprocess_text_batches(series=pl.Series([text]),
+                                   #custom_dict=None,
+                                   keep_stopwords=keep_stopwords,
+                                   keep_format=keep_format,
+                                   return_token_list=return_token_list,
+                                   lower_case=lower_case,
+                                   include_pattern=include_pattern,
+                                   patterns=patterns)
+    return pre_series
 
 @st.cache_data(hash_funcs={pl.DataFrame: hash_dataframe})
 def convert_to_csv(df: pl.DataFrame):

@@ -7,7 +7,7 @@ import xlsxwriter
 #import openpyxl
 import ThaiTextPrepKit
 
-__version__ = '1.0e'
+__version__ = '1.0G'
 
 def on_file_uploader_change():
     print('Change!')
@@ -19,7 +19,7 @@ st.write("Thai language preprocessing for any downstream tasks")
 st.write(f'Text Preprocessing Version: {ThaiTextPrepKit.__version__}')
 
 # Insert containers separated into tabs:
-tab1, tab2 = st.tabs(["Text Preprocessing", "Data View"])
+tab1, tab2, tab3 = st.tabs(["Text Preprocessing", "Data View", "Test Here"])
 
 with tab1:
     uploaded_file = st.file_uploader('Upload file here', type=['csv', 'xlsx'],
@@ -102,8 +102,8 @@ with tab1:
     #    help='เลือกคอลัมน์ข้อความที่ต้องการปรับปรุง'
     #)
 
-    output_column = st.text_input("Output column title", "_pre_text",
-                                  help='กำหนดชื่อคอลัมน์ใหม่สำหรับข้อความที่ทำการปรับปรุงแล้ว')
+    output_suffix = st.text_input("Output column suffix", "_pre_text",
+                                  help='กำหนดข้อความต่อท้ายชื่อคอลัมน์สำหรับคอลัมน์ใหม่ เช่น คอลัมน์ text ชื่อคอลัมน์ที่ปรับปรุงข้อความแล้วชื่อ text_pre_text')
 
     remain_stopwords = st.checkbox('Remain Stopwords',
                                 value=True,
@@ -133,6 +133,9 @@ with tab1:
         placeholder="Select specific patterns...",
     )
 
+    st.info('default: The default pattern transforms the text for optimal data analysis and visualization.', icon="✨")
+    st.info('natural: The natural pattern modifies and corrects the text while maintaining its original, smooth feel, making it ideal for real-world presentations.', icon="🍃")
+
     perform_ready = not st.session_state.perform
 
     perform_button = st.button("Perform Preprossing", 
@@ -140,16 +143,18 @@ with tab1:
                             key='perform_button',
                             disabled=perform_ready)
 
+    output_columns = [col + output_suffix for col in text_columns]
+
     if perform_button:
         if dataframe is not None:
             #try:
             progress_text = "Operation in progress. Please wait."
-            my_bar = st.progress(0, text=progress_text)
+            progress_bar = st.progress(0, text=progress_text)
             for i, text_column in enumerate(text_columns):
-                my_bar.progress(i + 1, text=progress_text)
+                progress_bar.progress(i + 1, text=progress_text)
                 performed_dataframe = utils.preprocess(df=st.session_state.performed_dataframe if st.session_state.performed_dataframe is not None else dataframe,
                                 input_col=text_column,
-                                output_col=text_column + output_column,
+                                output_col=output_columns[i],
                                 custom_dict=None,
                                 keep_stopwords=remain_stopwords,
                                 keep_format=remain_format,
@@ -165,7 +170,7 @@ with tab1:
 
             #except Exception as error:
             #    st.write(f'⚠️ Exception Occur: {error}')
-            my_bar.empty()
+            progress_bar.empty()
 
         else:
             st.write('⚠️ Upload file first!')
@@ -174,8 +179,8 @@ with tab1:
     performed_dataframe = st.session_state.performed_dataframe
 
     if performed_dataframe is not None:
-        if st.session_state.performed_dataframe is not None: #output_column in performed_dataframe.columns:
-            #st.dataframe(performed_dataframe.select([col for col in ]).head(5))
+        if st.session_state.performed_dataframe is not None:# and output_columns in performed_dataframe.columns:
+            st.dataframe(performed_dataframe.select(output_columns).head(5))
 
             download_csv = st.download_button('Donwload .CSV',
                                                 data=utils.convert_to_csv(performed_dataframe),
@@ -193,12 +198,16 @@ with tab1:
                                         value=False)
 
             if get_html_table:
-                download_html_table = st.download_button('Get HTML Table',
-                                                        data=utils.to_html_highlight_table(performed_dataframe,
-                                                                                            patterns=spec_patterns,
-                                                                                            raw_column=text_column,
-                                                                                            preprocess_column=output_column),
-                                                        file_name='HTML_compare_table.html')
+                if len(text_columns) == 1:
+                    download_html_table = st.download_button('Get HTML Table',
+                                                            data=utils.to_html_highlight_table(performed_dataframe,
+                                                                                                patterns=spec_patterns,
+                                                                                                raw_column=text_columns[0],
+                                                                                                preprocess_column=output_columns[0]),
+                                                            file_name='HTML_compare_table.html')
+                    
+                else:
+                    st.warning('HTML table currently not support text column more than 1', icon="⚠️")
                 
             #st.balloons()
             #dataframe = performed_dataframe
@@ -206,4 +215,63 @@ with tab1:
 with tab2:
     df = st.session_state.get('performed_dataframe')
     if df is not None:
-        st.dataframe(df)
+        st.dataframe(df.head(1000))
+
+with tab3:
+    input_text = st.text_area('Text',
+                               placeholder='สวัสดีวันศุกร์',
+                               value='เบอโทในแอพ',
+                               help='พิมพ์ข้อความที่ต้องการทดสอบ',
+                               height=10)
+    
+    test_remain_stopwords = st.checkbox('Remain Stopwords',
+                                value=True,
+                                help='เก็บคำเชื่อมไว้ เช่น และ, หรือ, ใช่, ไม่',
+                                key='test_remain_stopwords')
+
+    test_lowercase = st.checkbox('Lowercase Text',
+                                value=False,
+                                help='แปลงตัวอักษรเป็นตัวพิมพ์เล็กทั้งหมด',
+                                key='test_lowercase')
+
+    test_remain_format = st.checkbox('Remain Text Format',
+                                value=True,
+                                help='คงรูปแบบการเว้นวรรคเดิมของประโยคต้นฉบับไว้ หากไม่เลือกประโยคจะเว้นวรรคแยกเป็นคำๆ เช่น "สบายดีไหม" -> "สบาย ดี ไหม"',
+                                key='test_remain_format')
+
+    test_return_token_list = st.checkbox('Return Token List',
+                                value=False,
+                                help='คือค่าประโยคในรูปแบบลิสต์ของคำ (สำหรับการนำไปใช้ต่อในการ visualization เท่านั้น) เช่น "สบายดีไหม" -> ["สบาย","ดี","ไหม"]',
+                                key='test_return_token_list')
+
+    test_include_pattern = st.text_input('Include Pattern',
+                                    placeholder='Input pattern to remain here... e.g. /()',
+                                    value='/()',
+                                    help='เพิ่มอักขระพิเศษที่ไม่ต้องการให้ตัดทิ้ง',
+                                    key='test_include_pattern')
+
+    test_spec_patterns = st.selectbox(
+        "Select Specific Pattern",
+        ('default', 'natural', 'corporate',),
+        index=0,
+        placeholder="Select specific patterns...",
+        key='test_patterns'
+    )
+
+    st.info('default: The default pattern transforms the text for optimal data analysis and visualization.', icon="✨")
+    st.info('natural: The natural pattern modifies and corrects the text while maintaining its original, smooth feel, making it ideal for real-world presentations.', icon="🍃")
+
+
+    if input_text:
+        series = utils.sigle_text_preprocessing(
+            text=input_text,
+            keep_stopwords=test_remain_stopwords,
+            keep_format=test_remain_format,
+            return_token_list=test_return_token_list,
+            lower_case=test_lowercase,
+            include_pattern=test_include_pattern,
+            patterns=test_spec_patterns,
+        )
+
+        st.write()
+        st.write(f'Output: {series[0]}')
