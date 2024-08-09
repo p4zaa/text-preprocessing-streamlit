@@ -180,3 +180,17 @@ def to_html_highlight_table(df, patterns, raw_column, preprocess_column):
         )
     
     return html_table
+
+@st.cache_data(hash_funcs={pl.DataFrame: hash_dataframe})
+def get_patterns_table(patterns):
+    patterns = available_patterns.get(patterns)
+    replacements = []
+    #regex_patterns = []
+    for pattern, replacement in patterns:
+        #regex_patterns.append(pattern.pattern)
+        replacements.append(replacement if replacement != '' else None)
+    data_dict = {
+        #'regex': regex_patterns,
+        'replacement': replacements
+    }
+    return pl.DataFrame(data_dict).drop_nulls(['replacement'])

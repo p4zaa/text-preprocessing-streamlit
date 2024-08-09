@@ -7,7 +7,7 @@ import xlsxwriter
 #import openpyxl
 import ThaiTextPrepKit
 
-__version__ = '1.0G'
+__version__ = '1.0H'
 
 def on_file_uploader_change():
     print('Change!')
@@ -19,7 +19,7 @@ st.write("Thai language preprocessing for any downstream tasks")
 st.write(f'Text Preprocessing Version: {ThaiTextPrepKit.__version__}')
 
 # Insert containers separated into tabs:
-tab1, tab2, tab3 = st.tabs(["Text Preprocessing", "Data View", "Test Here"])
+tab1, tab2, tab3, tab4 = st.tabs(["Text Preprocessing", "Data View", "Test Here", "Pattern Replacements"])
 
 with tab1:
     uploaded_file = st.file_uploader('Upload file here', type=['csv', 'xlsx'],
@@ -275,3 +275,25 @@ with tab3:
 
         st.write()
         st.write(f'Output: {series[0]}')
+
+with tab4:
+    st.subheader(f'You are currently using text preprocessing version: {ThaiTextPrepKit.__version__}')
+    st.link_button("Typo report/Request new pattern", 
+                   "https://dustyblu3.notion.site/Word-Typo-Reports-8a61d91f7b4c4ae78da1d4ead5205966?pvs=4",
+                   use_container_width=True,
+                   type='primary',)
+
+    default_tab, natural_tab, corporate_tab = st.tabs(["default", "natural", "corporate"])
+    
+    with default_tab:
+        st.dataframe(utils.get_patterns_table('default'), 
+                     use_container_width=True,
+                     )
+
+    with natural_tab:
+        st.dataframe(utils.get_patterns_table('natural'),
+                     use_container_width=True,)
+
+    with corporate_tab:
+        st.dataframe(utils.get_patterns_table('corporate'),
+                     use_container_width=True,)
