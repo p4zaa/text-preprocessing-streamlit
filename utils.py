@@ -42,7 +42,8 @@ def load_uploaded_file(uploaded_file, file_type, selected_sheet=None):
     elif file_type == 'excel':
         dataframe = pl.read_excel(uploaded_file,
                         sheet_name=selected_sheet,
-                        engine='calamine')
+                        engine='calamine',
+                        infer_schema_length=None)
         return dataframe
 
 @st.cache_data(hash_funcs={pl.DataFrame: hash_dataframe})
