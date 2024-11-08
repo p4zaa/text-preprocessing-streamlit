@@ -7,7 +7,7 @@ import xlsxwriter
 #import openpyxl
 import ThaiTextPrepKit
 
-__version__ = '1.0I'
+__version__ = '1.0J'
 
 def on_file_uploader_change():
     print('Change!')
@@ -222,7 +222,7 @@ with tab3:
                                placeholder='สวัสดีวันศุกร์',
                                value='เบอโทในแอพ',
                                help='พิมพ์ข้อความที่ต้องการทดสอบ',
-                               height=10)
+                               height=68)
     
     test_remain_stopwords = st.checkbox('Remain Stopwords',
                                 value=True,
